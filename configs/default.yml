@@ -1,0 +1,88 @@
+# 任务与随机性
+project: "demo-classification"
+seed: 42
+
+# 日志
+logging:
+  level: "INFO"             # [DEBUG, INFO, WARNING, ERROR]
+  to_file: True             # true 则写入文件
+  log_dir: "logs"           # 仅当 to_file=true 时使用
+
+# 数据预处理（将原始数据转为统一 npz/pt 格式）
+preprocess:
+  input_path: "data/raw"     # 原始数据目录/文件
+  output_path: "data/processed"  # 处理后输出
+  format: "csv"              # 示例：csv/json/parquet（可自定义）
+  target_column: "label"      # 监督任务标签列名
+  text_column: "text"        # 如为NLP示例
+  image_dir: null             # 如为CV示例，可指向图片目录
+
+# 数据加载
+data:
+  dataset_name: "mathQA"
+  data_dir: 'E:\code\py\dl\data\mathQA'
+  suffix: "tsv"
+  is_pair: True
+  labels: ['0', '1', '2', '3', '4']
+  small_train: 5000
+  column_map:
+    text_a: "Problem"
+    text_b: "options"
+    label: "correct"
+  max_seq_length: 256
+  model_list: ["train", "dev", "test"]
+  batch_size: 64
+  num_workers: 4
+  pin_memory: true
+  shuffle: true
+
+# 模型
+model:
+  name: "bert_peft"                # [mlp, cnn, resnet18, custom]
+  model_path: 'C:/User/wy/Desktop/models/bert-base-uncased'
+  # 当 name: custom 时，需提供 import_path 与 class_name
+  import_path: null          # e.g. "my_package.my_model"
+  class_name: null           # e.g. "MyModel"
+  kwargs:
+    num_classes: 5
+    peft_r: 8
+    peft_alpha: 16
+    peft_dropout: 0.1
+    peft_target: ['query', 'value']
+
+# 优化与学习率
+optim:
+  name: "AdamW"
+  lr: 0.001
+  weight_decay: 0.00001
+  betas: [0.9, 0.999]
+
+scheduler:
+  name: "CosineAnnealingLR"  # 可为 null
+  kwargs:
+    T_max: 10
+    eta_min: 0.00001
+
+# 训练
+train:
+  epochs: 20
+  device: "cuda"             # [cuda, cpu, auto]
+  grad_clip_norm: null
+  mixed_precision: true
+  save_dir: "checkpoints"
+  save_every_epoch: true
+  monitor: "val/accuracy"    # 根据该指标选择最好权重
+  monitor_mode: "max"         # [max|min]
+  early_stop_patience: 10      # 可选：早停
+
+# 损失与指标（通过注册表传入）
+loss:
+  name: "CrossEntropyLoss"
+  kwargs: {}
+
+metrics:
+  - name: "accuracy"
+    kwargs: {}
+  - name: "f1"
+    kwargs:
+      average: "macro"
