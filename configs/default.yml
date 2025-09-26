@@ -1,13 +1,13 @@
 # 任务与随机性
-project: "demo-classification"
+project: "dl"
 seed: 42
-
+task: mathQA
 # 日志
 logging:
   level: "INFO"             # [DEBUG, INFO, WARNING, ERROR]
   to_file: True             # true 则写入文件
-  log_dir: "logs"           # 仅当 to_file=true 时使用
-
+  log_dir: "/root/autodl-tmp/single/logs"           # 仅当 to_file=true 时使用
+  
 # 数据预处理（将原始数据转为统一 npz/pt 格式）
 preprocess:
   input_path: "data/raw"     # 原始数据目录/文件
@@ -20,7 +20,7 @@ preprocess:
 # 数据加载
 data:
   dataset_name: "mathQA"
-  data_dir: 'E:\code\py\dl\data\mathQA'
+  data_dir: '/root/autodl-tmp/dataset/mathQA'
   suffix: "tsv"
   is_pair: True
   labels: ['0', '1', '2', '3', '4']
@@ -39,7 +39,7 @@ data:
 # 模型
 model:
   name: "bert_peft"                # [mlp, cnn, resnet18, custom]
-  model_path: 'C:/User/wy/Desktop/models/bert-base-uncased'
+  model_path: ''
   # 当 name: custom 时，需提供 import_path 与 class_name
   import_path: null          # e.g. "my_package.my_model"
   class_name: null           # e.g. "MyModel"
@@ -65,11 +65,11 @@ scheduler:
 
 # 训练
 train:
-  epochs: 20
+  epochs: 100
   device: "cuda"             # [cuda, cpu, auto]
   grad_clip_norm: null
   mixed_precision: true
-  save_dir: "checkpoints"
+  save_dir: "/root/autodl-tmp/single/checkpoints"
   save_every_epoch: true
   monitor: "val/accuracy"    # 根据该指标选择最好权重
   monitor_mode: "max"         # [max|min]

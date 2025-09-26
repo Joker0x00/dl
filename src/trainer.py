@@ -16,6 +16,7 @@ class Trainer:
         self.device = device
         self.cfg = cfg
         self.best_score = None
+        self.checkpoints_path = os.path.join(self.cfg.train.save_dir, cfg.project , cfg.task)
 
     def _step(self, batch, train=True):
         batch = [b.to(self.device) for b in batch]
@@ -44,7 +45,7 @@ class Trainer:
             batch = [b.to(self.device) for b in batch]
             x = batch[:3]
             y = batch[3]
-            logits = self.model(**x)
+            logits = self.model(x[0], x[1], x[2])
             loss = self.loss_fn(logits, y)
             bs = y.size(0)
             total_loss += loss.item() * bs
@@ -54,8 +55,9 @@ class Trainer:
         self.model.train()
         return {"loss": total_loss / max(n,1), **{k: v / max(n,1) for k,v in agg.items()}}
 
-    def fit(self, train_loader, val_loader):
-        os.makedirs(self.cfg.train.save_dir, exist_ok=True)
+    def fit(self, train_loader, val_loader, start_epoch: int = 1):
+        os.makedirs(self.checkpoints_path, exist_ok=True)
+        logging.info("Training start from epoch %d (total epochs=%d)", start_epoch, self.cfg.train.epochs)
         monitor = self.cfg.train.monitor
         mode = self.cfg.train.monitor_mode
         greater_is_better = (mode.lower() == "max")
@@ -64,7 +66,7 @@ class Trainer:
         patience = self.cfg.train.early_stop_patience
         strikes = 0
 
-        for epoch in range(1, self.cfg.train.epochs + 1):
+        for epoch in range(start_epoch, self.cfg.train.epochs + 1):
             logging.info(f"Epoch {epoch}/{self.cfg.train.epochs}")
             self.model.train()
             running = {"loss": 0.0}
@@ -96,7 +98,7 @@ class Trainer:
                     "scheduler_state": None if self.scheduler is None else self.scheduler.state_dict(),
                     "cfg": self.cfg,
                     "history": history,
-                }, epoch_checkpoint_path(self.cfg.train.save_dir, epoch))
+                }, epoch_checkpoint_path(self.checkpoints_path, epoch))
 
             # 保存最好
             score = self._read_monitor(logs, monitor)
@@ -109,7 +111,7 @@ class Trainer:
                     "scheduler_state": None if self.scheduler is None else self.scheduler.state_dict(),
                     "cfg": self.cfg,
                     "history": history,
-                }, best_checkpoint_path(self.cfg.train.save_dir))
+                }, best_checkpoint_path(self.checkpoints_path))
                 logging.info("New best %.5f on %s, saved to %s", score, monitor, best_checkpoint_path(self.cfg.train.save_dir))
                 strikes = 0
             else:

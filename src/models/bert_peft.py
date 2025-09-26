@@ -6,7 +6,7 @@ class BertPEFT(nn.Module):
     def __init__(self, num_classes: int, peft_r: int = 8, peft_alpha: int = 16, peft_dropout: float = 0.1, peft_target: list = ['query', 'value']):
         super().__init__()
         # 加载预训练 BERT
-        self.bert = AutoModel.from_pretrained(r"C:\Users\wy\Desktop\models\bert-base-uncased")
+        self.bert = AutoModel.from_pretrained(r"/root/autodl-fs/pretrained/bert-base-uncased")
         hidden_size = self.bert.config.hidden_size
         peft_config = LoraConfig(
                     task_type=TaskType.FEATURE_EXTRACTION,  # sequence‑level classification

@@ -79,6 +79,7 @@ class MetricItem:
 class Config:
     project: str = "demo-classification"
     seed: int = 42
+    task: str = "test"
     logging: LoggingCfg = field(default_factory=LoggingCfg)
     preprocess: PreprocessCfg = field(default_factory=PreprocessCfg)
     data: DataCfg = field(default_factory=DataCfg)

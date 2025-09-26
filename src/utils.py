@@ -31,7 +31,7 @@ def save_checkpoint(state: dict, path: str):
 
 
 def load_checkpoint(path: str, map_location: str = "cpu") -> dict:
-    return torch.load(path, map_location=map_location)
+    return torch.load(path, map_location=map_location, weights_only=False)
 
 
 def best_checkpoint_path(save_dir: str) -> str:

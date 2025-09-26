@@ -62,7 +62,7 @@ def resolve_device(device_str: str) -> torch.device:
 
 def main(args):
     cfg = Config.from_yaml(args.config)
-    setup_logging(cfg.logging.level, cfg.logging.to_file, cfg.logging.log_dir)
+    setup_logging(cfg.logging.level, cfg.logging.to_file, cfg.logging.log_dir, cfg.project, cfg.task)
     set_seed(cfg.seed)
 
     # 打印所有参数配置
@@ -96,19 +96,21 @@ def main(args):
     metrics = make_metrics(cfg)
 
     # 断点续训（如提供）
+    start_epoch = 1
     if args.resume:
-        resume_from(args.resume, model, optimizer, scheduler, device)
+        start_epoch, _ = resume_from(args.resume, model, optimizer, scheduler, device)
+        logging.info("Resuming training from epoch %d", start_epoch+1)
 
     # 训练
     trainer = Trainer(model, optimizer, scheduler, loss_fn, metrics, device, cfg)
-    history = trainer.fit(train_loader, val_loader)
+    history = trainer.fit(train_loader, val_loader, start_epoch+1)
 
     # 使用最佳权重评测
-    best_path = best_checkpoint_path(cfg.train.save_dir)
+    best_path = best_checkpoint_path(os.path.join(self.cfg.train.save_dir, cfg.project , cfg.task))
     if os.path.exists(best_path):
         from src.utils import load_checkpoint
         ckpt = load_checkpoint(best_path, map_location=device)
-        model.load_state_dict(ckpt["model_state"])  # 使用最佳
+        model.load_state_dict(ckpt["model_state"], weights_only=False)  # 使用最佳
         evaluator = Evaluator(model, loss_fn, metrics, device)
         test_logs = evaluator.evaluate(test_loader)
         logging.info("TEST: %s", {k: round(v, 5) for k, v in test_logs.items()})

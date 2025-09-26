@@ -109,7 +109,7 @@ def DataloaderSC(data_cfg: DataCfg, model_path: str, loader_registry=None):
     if loader_registry:
         registry.update(loader_registry)  # 外部可注入或覆盖解析器
     # todo 先这样吧
-    tokenizer = BertTokenizer.from_pretrained(r"C:\Users\wy\Desktop\models\bert-base-uncased", do_lower_case=False, local_files_only=True)
+    tokenizer = BertTokenizer.from_pretrained(r"/root/autodl-fs/pretrained/bert-base-uncased", do_lower_case=False, local_files_only=True)
 
     dataloader, label_list_map = {}, {}
 
